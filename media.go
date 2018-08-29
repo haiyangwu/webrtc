@@ -5,6 +5,7 @@ import (
 
 	"time"
 
+	"github.com/pions/webrtc/pkg/media"
 	"github.com/pions/webrtc/pkg/rtcerr"
 	"github.com/pions/webrtc/pkg/rtp"
 	"github.com/pkg/errors"
@@ -119,12 +120,6 @@ func (t *RTCRtpTransceiver) Stop() error {
 	return errors.Errorf("TODO")
 }
 
-// RTCSample contains media, and the amount of samples in it
-type RTCSample struct {
-	Data    []byte
-	Samples uint32
-}
-
 // RTCTrack represents a track that is communicated
 type RTCTrack struct {
 	ID          string
@@ -134,7 +129,7 @@ type RTCTrack struct {
 	Ssrc        uint32
 	Codec       *RTCRtpCodec
 	Packets     <-chan *rtp.Packet
-	Samples     chan<- RTCSample
+	Samples     chan<- media.RTCSample
 }
 
 // NewRTCTrack is used to create a new RTCTrack
@@ -148,7 +143,7 @@ func (pc *RTCPeerConnection) NewRTCTrack(payloadType uint8, id, label string) (*
 		return nil, errors.New("codec payloader not set")
 	}
 
-	trackInput := make(chan RTCSample, 15) // Is the buffering needed?
+	trackInput := make(chan media.RTCSample, 15) // Is the buffering needed?
 	ssrc := rand.New(rand.NewSource(time.Now().UnixNano())).Uint32()
 	go func() {
 		packetizer := rtp.NewPacketizer(
